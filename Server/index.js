@@ -736,5 +736,28 @@ app.use("/profile" , profile_router)
 // Dashboard
 app.use("/dashboard" , dashboard_router);
 
+app.use((err, req, res, next) => {
+    console.error(err);
+
+    if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({
+            success: false,
+            message: 'File is too large. Maximum size is 2 MB.'
+        });
+    }
+    
+    if (err.message === 'Only JPEG, PNG, and WebP images are allowed.') {
+        return res.status(400).json({
+            success: false,
+            message: err.message
+        });
+    }
+
+    return res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+    });
+});
+
 app.get('/', (req, res) => res.send('Hello World!'))
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
