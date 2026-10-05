@@ -84,7 +84,11 @@ npm install
 Create a `.env` file in `Server/`:
 
 ```
+
+You can copy [`Server/.env.example`](./Server/.env.example) as a starting point.
 DB_NAME=clientdesk
+DB_USER=postgres
+DB_HOST=localhost
 DB_PASSWORD=your_postgres_password
 DB_PORT=5432
 
@@ -103,9 +107,22 @@ CORS_ORIGIN=http://localhost:5173
 PORT=3000
 ```
 
-Create and configure the PostgreSQL database required by ClientDesk.
+For a managed PostgreSQL deployment, use the provider's connection string instead
+of the individual `DB_*` settings:
 
-Note: A database migration/schema file is not currently included in the repository. Database setup will be documented once the schema is committed., then:
+```
+DATABASE_URL=postgresql://user:password@host:5432/database
+NODE_ENV=production
+CORS_ORIGIN=https://your-client-domain.example
+```
+
+Create the database schema before starting the server:
+
+```bash
+psql "$DATABASE_URL" -f db/schema.sql
+```
+
+Then start the server:
 
 ```bash
 npm start
@@ -120,6 +137,10 @@ npm run dev
 ```
 
 The app will be running at `http://localhost:5173`, talking to the API at `http://localhost:3000`.
+
+For a deployed frontend, set `VITE_API_BASE_URL` to the deployed API URL and
+`VITE_GOOGLE_CLIENT_ID` to the same Google OAuth client ID used by the server.
+Add both values to the frontend provider's environment settings before building.
 
 > Note: a database migration/schema file isn't checked into this repo yet — see [Roadmap](#roadmap).
 
@@ -138,7 +159,7 @@ All routes except `/api/register`, `/api/login`, and `/api/auth/google` require 
 
 ## Roadmap
 
-- [ ] Commit a proper schema/migration file so the DB can be provisioned from scratch
+- [x] Commit a proper schema/migration file so the DB can be provisioned from scratch
 - [ ] Recurring invoices
 - [ ] Rate limiting on auth endpoints
 - [ ] Team seats / multi-user workspaces

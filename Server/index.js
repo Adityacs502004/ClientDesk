@@ -61,6 +61,13 @@ app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
 
+const sessionCookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+};
+
 
 app.post("/api/register" , async (req , res )=>{
     let name = req.body.name;
@@ -347,10 +354,7 @@ app.post('/api/register/otp' , async (req , res)=>{
                                 expiresIn : '7d'
                             });
                                 res.cookie('token' , jwt_token , {
-                                    httpOnly: true,
-                                    secure: process.env.NODE_ENV === 'production',
-                                    sameSite: 'lax',
-                                    maxAge: 7 * 24 * 60 * 60 * 1000
+                                    ...sessionCookieOptions
                                 });
                             res.status(200).json({ 
                                 success : true,
@@ -501,10 +505,7 @@ app.post('/api/login' , async (req, res)=>{
                 const token = jwt.sign(payload , JWT_SECRET , {expiresIn : '7d'})
 
                 res.cookie('token' , token , {
-                    httpOnly : true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite : 'lax',
-                    maxAge : 7 * 24 * 60 * 60 * 1000
+                    ...sessionCookieOptions
                 })
 
                 return res.status(200).json({
@@ -707,7 +708,7 @@ app.post('/api/reset-password', async (req, res) => {
             res.clearCookie('token', {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax'
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
             });
 
             return res.status(200).json({
