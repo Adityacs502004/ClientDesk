@@ -6,9 +6,11 @@ export async function createClient(req , res){
     // code
     const {name , email , status , tags} = req.body;
     const user_id = req.user.user_id;
+
+    const splited_tags = Array.isArray(req.body.tags)? req.body.tags : String(req.body.tags || "").split(",").map(tag => tag.trim()).filter(Boolean);
     if (name && email){
         try {
-            const store_client = await db.query("INSERT INTO public.client_data (user_id , client_name , email , status , tags) VALUES ($1, $2 , $3 , $4 , $5)" , [user_id , name , email , status ,tags]);
+            const store_client = await db.query("INSERT INTO public.client_data (user_id , client_name , email , status , tags) VALUES ($1, $2 , $3 , $4 , $5)" , [user_id , name , email , status ,splited_tags]);
 
             await db.query("INSERT INTO public.activity_log (user_id , activity_type , title , description) VALUES ($1 , $2 , $3 , $4)" , [user_id , "client_created" , "Client added" , name]);
         } catch (error) {
