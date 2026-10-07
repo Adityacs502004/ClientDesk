@@ -107,6 +107,13 @@ export async function delete_project(req , res) {
     try {
         const delete_project_query = await db.query("DELETE FROM public.project_data WHERE id = $1 AND user_id = $2 RETURNING project_name" , [project_id , user_id] );
 
+        if (delete_project_query.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Project not found"
+            });
+        }
+
         const deleted_project = delete_project_query.rows[0].project_name;       
 
         await db.query("INSERT INTO public.activity_log (user_id , activity_type , title , description) VALUES ($1 , $2 , $3 , $4)" , [user_id , "project_deleted" , "Project deleted" ,  `Project ${deleted_project} deleted`]);
@@ -116,6 +123,13 @@ export async function delete_project(req , res) {
             message : "Project deleted successfully"
         })
     } catch (error) {
+        if (error.code === "23503") {
+            return res.status(409).json({
+                success: false,
+                message: "Project cannot be deleted while it has invoices"
+            });
+        }
+
         return res.status(500).json({
             success : false,
             message : "Failed to delete project"
@@ -162,6 +176,12 @@ export async function task_data(req , res) {
         }
 
         const project_name_query = await db.query("SELECT project_name FROM public.project_data WHERE id = $1 AND user_id = $2" , [project_id , user_id]);
+        if (project_name_query.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Project not found"
+            });
+        }
 
         const project_name = project_name_query.rows[0].project_name;
 
@@ -224,6 +244,13 @@ export async function update_task(req , res) {
     try {
         const update_task = await db.query("UPDATE public.project_task SET is_complete = $1 WHERE id = $2 AND user_id = $3 RETURNING project_id " , [task_complete , task_id , user_id]);
 
+        if (update_task.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Task not found"
+            });
+        }
+
         const project_id = update_task.rows[0].project_id;
 
         if (!project_id){
@@ -234,6 +261,12 @@ export async function update_task(req , res) {
         }
 
         const project_name_query = await db.query("SELECT project_name FROM public.project_data WHERE id = $1 AND user_id = $2" , [project_id , user_id]);
+        if (project_name_query.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Project not found"
+            });
+        }
 
         const project_name = project_name_query.rows[0].project_name;
 
@@ -277,4 +310,3 @@ export async function delete_task(req , res) {
         });
     }
 }
-

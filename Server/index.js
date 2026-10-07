@@ -224,9 +224,10 @@ app.post("/api/register" , async (req , res )=>{
 
 
     } catch (error) {
+        console.error("Error validating registration:", error);
         return res.status(500).json({
             success:false,
-            message:error?.message || "Error validating the user"
+            message:"Unable to validate the user"
         });
     }
   
@@ -392,9 +393,10 @@ app.post('/api/register/otp' , async (req , res)=>{
             
         }
     } catch(error) {
+        console.error("Error processing registration:", error);
         return res.status(500).json({
             success: false,
-            message: error?.message || "Internal Server error!" 
+            message: "Unable to process registration"
         });
     }
 });
@@ -422,9 +424,10 @@ app.get("/api/verify_token", authmiddleware , async (req , res)=>{
 
         }
     } catch (error) {
+        console.error("Error verifying token:", error);
         return res.status(500).json({
             success : false,
-            message : error?.message || "Error in token verification"
+            message : "Unable to verify session"
         });
     }
     
@@ -476,6 +479,15 @@ app.post('/api/login' , async (req, res)=>{
             const username = user.username;
             const db_hash_password = user.password_hash;
             const id = user.id;
+
+            // Google-only accounts do not have a password hash.
+            if (!db_hash_password) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid email or password"
+                });
+            }
+
             // check password
             const check_password = await bcrypt.compare(password , db_hash_password);
 
@@ -517,7 +529,7 @@ app.post('/api/login' , async (req, res)=>{
     } catch (error) {
         return res.status(500).json({
             success : false , 
-            message : error.message
+            message : "Unable to log in"
         });
     }
 })
@@ -606,9 +618,10 @@ app.post('/api/forgot-password', async (req, res) => {
             });
         }
     } catch (error) {
+        console.error("Error sending password reset OTP:", error);
         return res.status(500).json({
             success: false,
-            message: error.message
+            message: 'Unable to send password reset OTP.'
         });
     }
 });
@@ -697,9 +710,10 @@ app.post('/api/reset-password', async (req, res) => {
             message: 'Password reset successful.'
         });
     } catch (error) {
+        console.error("Error resetting password:", error);
         return res.status(500).json({
             success: false,
-            message: error.message
+            message: 'Unable to reset password.'
         });
     }
 });

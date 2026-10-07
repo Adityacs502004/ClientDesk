@@ -6,7 +6,7 @@ const Clients_details = (props) => {
     const name = props.Client || "";
 
     const status = props.status || "";
-    const tags = (props.tags || "" ).split(",").filter(Boolean);
+   const tags = Array.isArray(props.tags) ? props.tags : (props.tags || "").split(",").filter(Boolean);
 
     const [popup , Setpopup] = useState(false);
 

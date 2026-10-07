@@ -170,8 +170,7 @@ export async function save_data(req , res) {
         console.log("Error in save_data:", error?.message || error);
         return res.status(500).json({
             success: false,
-            message: "Error uploading signature",
-            error: error?.message || "Unknown error"
+            message: "Error uploading signature"
         });
     }
 }
@@ -204,6 +203,13 @@ export async function get_profile_pic(req , res) {
 
     try {
         const profile_query = await db.query("SELECT profile_pic_url FROM public.users WHERE id = $1" , [user_id]);
+        if (profile_query.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
         const profile_url = profile_query.rows[0].profile_pic_url;
         if(!profile_url){
             return res.status(200).json({

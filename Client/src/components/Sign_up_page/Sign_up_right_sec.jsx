@@ -82,8 +82,9 @@ function Sign_up_right_sec() {
 
       }
       } catch (error) {
-        console.log(error)
-        SetCorrect({...DataBoolean , is_Error : true , Message : error.response.data.message})
+        const message = error?.response?.data?.message
+          || (error?.code === "ECONNABORTED" ? "The server took too long to respond." : "Unable to connect to the server.");
+        SetCorrect({...DataBoolean , is_Error : true , Message : message})
       }
       
     }

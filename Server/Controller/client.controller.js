@@ -8,6 +8,14 @@ export async function createClient(req , res){
     const user_id = req.user.user_id;
 
     const splited_tags = Array.isArray(req.body.tags)? req.body.tags : String(req.body.tags || "").split(",").map(tag => tag.trim()).filter(Boolean);
+
+    if (typeof name !== "string" || !name.trim() || typeof email !== "string" || !email.trim()) {
+        return res.status(400).json({
+            success: false,
+            message: "Client name and email are required"
+        });
+    }
+
     if (name && email){
         try {
             const store_client = await db.query("INSERT INTO public.client_data (user_id , client_name , email , status , tags) VALUES ($1, $2 , $3 , $4 , $5)" , [user_id , name , email , status ,splited_tags]);
@@ -101,7 +109,7 @@ export async function delete_client(req, res) {
         console.error("Error deleting client:", error);
          return res.status(500).json({
             success : false,
-            message : error?.message || "Error deleting client"
+            message : "Error deleting client"
         })
         }
     } else {
@@ -209,9 +217,11 @@ export async function update_client(req , res) {
     const client_id = req.body.client_id;
     const {name , email , status , tags} = req.body;
 
+    const splited_tags = Array.isArray(req.body.tags)? req.body.tags : String(req.body.tags || "").split(",").map(tag => tag.trim()).filter(Boolean);
+
     if (client_id) {
         try {
-            const update_client = await db.query("UPDATE public.client_data SET client_name = $1 , email = $2, status = $3, tags = $4 WHERE id = $5 AND user_id = $6" , [name , email , status , tags , client_id , user_id]);
+            const update_client = await db.query("UPDATE public.client_data SET client_name = $1 , email = $2, status = $3, tags = $4 WHERE id = $5 AND user_id = $6" , [name , email , status , splited_tags , client_id , user_id]);
         } catch (error) {
             return res.status(500).json({
                 success : false,

@@ -74,16 +74,18 @@ export async function Save_invoice(req , res) {
             });
         }
 
-        const project_check = await db.query(
-            "SELECT 1 FROM public.project_data WHERE id = $1 AND user_id = $2 AND client_id = $3",
-            [project_id, user_id, client_id]
-        );
+        if (project_id !== null && project_id !== undefined) {
+            const project_check = await db.query(
+                "SELECT 1 FROM public.project_data WHERE id = $1 AND user_id = $2 AND client_id = $3",
+                [project_id, user_id, client_id]
+            );
 
-        if (project_check.rows.length === 0) {
-            return res.status(403).json({
-                success: false,
-                message: "Project didn't belong to this user or does not match the selected client"
-            });
+            if (project_check.rows.length === 0) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Project didn't belong to this user or does not match the selected client"
+                });
+            }
         }
 
         const columns = ["user_id", "project_id", "client_id", "issue_date", "due_date", "total_amount", "notes"];
@@ -325,10 +327,18 @@ export async function mark_sent(req , res) {
     const invoice_id = req.body.invoice_id;
 
     try {
-        await db.query(
+        const mark_sent_query = await db.query(
             "UPDATE public.invoice_data SET status = $1 WHERE id = $2 AND user_id = $3",
             ["Sent", invoice_id, user_id]
         );
+
+        if (mark_sent_query.rowCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Invoice not found"
+            });
+        }
+
         return res.status(200).json({
             success : true,
             message : "Marked as sent successfully"
@@ -387,6 +397,13 @@ export async function cancel_invoice(req , res) {
     try {
         const cancel_invoice_query = await db.query("UPDATE public.invoice_data SET status = $1 WHERE id = $2 AND user_id = $3 RETURNING invoice_number" , ["Cancelled" , invoice_id , user_id]);
 
+        if (cancel_invoice_query.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Invoice not found"
+            });
+        }
+
         const invoice_number = cancel_invoice_query.rows[0].invoice_number;
 
         await db.query("INSERT INTO public.activity_log (user_id , activity_type , title , description) VALUES ($1 , $2 , $3 , $4)" , [user_id , "invoice_cancelled" , "Invoice cancelled" ,  `Invoice ${invoice_number} cancelled`]);
@@ -435,11 +452,18 @@ async function get_detail_for_email(user_id , client_id , project_id) {
             // Get username and email
 
             const user_query = await db.query("SELECT username , email FROM public.users WHERE id = $1" , [user_id]);
-            const {username , user_email} = user_query.rows[0];
+            if (user_query.rows.length === 0) {
+                throw new Error("User not found");
+            }
+
+            const {username , email: user_email} = user_query.rows[0];
 
             // client email
 
             const client_email_query = await db.query("SELECT client_name , email FROM public.client_data WHERE id = $1 AND user_id = $2" , [client_id , user_id]);
+            if (client_email_query.rows.length === 0) {
+                throw new Error("Client not found");
+            }
 
             const client_name = client_email_query.rows[0].client_name;
             const client_email = client_email_query.rows[0].email;
@@ -448,7 +472,10 @@ async function get_detail_for_email(user_id , client_id , project_id) {
             let project_name = "";
             if (project_id) {
                 const project_name_query = await db.query("SELECT project_name FROM public.project_data WHERE id = $1 AND user_id = $2" , [project_id , user_id]);
-                project_name = project_name_query.rows[0]?.project_name ?? "";
+                if (project_name_query.rows.length === 0) {
+                    throw new Error("Project not found");
+                }
+                project_name = project_name_query.rows[0].project_name;
             }
 
             const details = {
@@ -824,5 +851,3 @@ async function generate_invoice_pdf(invoice_id, user_id) {
         })();
     });
 }
-
-

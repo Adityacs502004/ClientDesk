@@ -42,7 +42,7 @@ export async function get_recent_activity(req , res) {
     const user_id = req.user.user_id;
 
     try {
-        const get_activity_query = await db.query("SELECT * FROM public.activity_log WHERE user_id = $1 LIMIT 10" , [user_id]);
+        const get_activity_query = await db.query("SELECT * FROM public.activity_log WHERE user_id = $1 ORDER BY created_at DESC LIMIT 10" , [user_id]);
         const activity_data = get_activity_query.rows;
         res.status(200).json({
             activity : activity_data,

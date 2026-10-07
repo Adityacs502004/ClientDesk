@@ -39,7 +39,6 @@ function Login_signup_right_sec() {
   }
 
   async function handleClick(params) {
-    console.log(FormData);
     params.preventDefault();
     try {
         const response = await Api.post('/api/login' , {
@@ -56,7 +55,9 @@ function Login_signup_right_sec() {
         Setresponse({success : false , message : response.data.message});
       }
     } catch (error) {
-      Setresponse({success : false , message : error.response.data.message});
+      const message = error?.response?.data?.message
+        || (error?.code === "ECONNABORTED" ? "The server took too long to respond." : "Unable to connect to the server.");
+      Setresponse({success : false , message });
     }
   }
 
