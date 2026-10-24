@@ -1,6 +1,6 @@
 # ClientDesk
 
-# LIVE : https://client-desk-six.vercel.app/dashboard
+# LIVE : https://client-desk-six.vercel.app
 
 Client and project management for freelancers — clients, projects, tasks, and invoicing in one place, without duct-taping together five different tools.
 
