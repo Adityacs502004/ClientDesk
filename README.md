@@ -1,5 +1,7 @@
 # ClientDesk
 
+# LIVE : https://client-desk-six.vercel.app/dashboard
+
 Client and project management for freelancers — clients, projects, tasks, and invoicing in one place, without duct-taping together five different tools.
 
 ClientDesk is built for solo freelancers and small studios who currently run their business out of spreadsheets, a notes app, and whatever invoicing tool didn't make them sign up with a credit card. It's not trying to be a full accounting suite or a project management platform for 50-person teams — it does client records, project/task tracking, and invoicing well, and stays out of your way otherwise.
